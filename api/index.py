@@ -1,6 +1,6 @@
 import requests
 import re
-from http.server import BaseHTTPRequestHandler,HTTPServer
+from http.server import BaseHTTPRequestHandler
 import json
 
 def list_split(items, n):
@@ -8,7 +8,6 @@ def list_split(items, n):
 def getdata(name):
     gitpage = requests.get("https://github.com/" + name)
     data = gitpage.text
-    print(data)
     datadatereg = re.compile(r'data-date="(.*?)" id="contribution-day-component')
     datacountreg = re.compile(r'position-absolute">(.*?) contribution')
     datadate = datadatereg.findall(data)
@@ -32,19 +31,12 @@ def getdata(name):
     return returndata
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        path=self.path
-        spl=path.split('?')[1:]
-        for kv in spl:
-            key,user=kv.split("=")
-            if key=="user": break
-        data=getdata(user)
+        path = self.path
+        user = path.split('?')[1][:-1]
+        data = getdata(user)
         self.send_response(200)
         self.send_header('Access-Control-Allow-Origin', '*')
         self.send_header('Content-type', 'application/json')
         self.end_headers()
         self.wfile.write(json.dumps(data).encode('utf-8'))
         return
-if __name__=="__main__":
-    server=HTTPServer(('localhost',8086),handler)
-    while 1:
-        server.handle_request()
